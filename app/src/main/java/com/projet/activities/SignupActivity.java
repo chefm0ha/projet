@@ -19,24 +19,28 @@ public class SignupActivity extends AppCompatActivity {
     private Button signupButton;
     private TextView goToLogin;
 
+    private Firebase firebase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Vérification supplémentaire de l'initialisation de Firebase
-        if (FirebaseApp.getApps(this).isEmpty()) {
-            FirebaseApp.initializeApp(this);
-        }
+        firebase = Firebase.getInstance();
 
-        // Initialisation des vues
+        initializeViews();
+        setupListeners();
+    }
+
+    private void initializeViews() {
         nameSignup = findViewById(R.id.nameSignup);
         emailSignup = findViewById(R.id.emailSignup);
         passwordSignup = findViewById(R.id.passwordSignup);
         signupButton = findViewById(R.id.signupButton);
         goToLogin = findViewById(R.id.goToLogin);
+    }
 
-        // Gestionnaire de clic pour le bouton d'inscription
+    private void setupListeners() {
         signupButton.setOnClickListener(v -> {
             String name = nameSignup.getText().toString().trim();
             String email = emailSignup.getText().toString().trim();
@@ -48,19 +52,13 @@ public class SignupActivity extends AppCompatActivity {
             }
 
             User newUser = new User(name, email, password);
-            Firebase.getInstance().createUserWithEmailAndPassword(newUser, new Firebase.LoginCallback() {
-                @Override
-                public void onSuccess(FirebaseUser user) {
-                    Toast.makeText(SignupActivity.this, "Inscription réussie", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(SignupActivity.this, MainActivity.class));
-                    finish();
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Toast.makeText(SignupActivity.this, "Erreur: " + error, Toast.LENGTH_SHORT).show();
-                }
-            });
+            firebase.createUserWithEmailAndPassword(newUser);
+            Toast.makeText(SignupActivity.this, "Account created successfully!", Toast.LENGTH_LONG).show();
+            // Finish current activity and go back to login
+            Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
         });
 
         // Redirection vers la connexion
@@ -68,4 +66,4 @@ public class SignupActivity extends AppCompatActivity {
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
         });
     }
-} 
+}
